@@ -1,0 +1,12 @@
+<?php
+
+return [
+
+    /*
+    | Paginación
+    */
+
+    'previous' => '&laquo; Anterior',
+    'next'     => 'Siguiente &raquo;',
+
+];
