@@ -58,5 +58,10 @@
     "Create table": "Create table",
     "Update table": "Update table",
     "Edit table :nombre": "Edit table :nombre",
-    "Delete table :nombre?": "Delete table :nombre?"
+    "Delete table :nombre?": "Delete table :nombre?",
+    "Role": "Role",
+    "Administrator": "Administrator",
+    "Client": "Client",
+    "Forbidden": "Forbidden",
+    "You don't have permission to access this section.": "You don't have permission to access this section."
 }
