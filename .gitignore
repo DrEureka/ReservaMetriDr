@@ -1,24 +1,100 @@
-*.log
-.DS_Store
-.env
-.env.backup
-.env.production
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
+################################################################
+# Laravel — defaults reinforced for ReservaMetriDr
+################################################################
+
+# Dependencies
+/vendor
 /node_modules
+
+# Build / cache
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
-/vendor
+/bootstrap/cache/*.php
+.phpunit.result.cache
+.phpunit.cache
+
+# Logs
+*.log
+/storage/logs/*
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+
+# Environment files (NEVER commit secrets)
+.env
+.env.*
+!.env.example
+.env.backup
+.env.production
+
+# Composer / NPM
+composer.phar
+package-lock.json.bak
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Auth / deploy keys
+/auth.json
 Homestead.json
 Homestead.yaml
+/.dockerignore
+
+################################################################
+# IDEs and editors — local config, never commit
+################################################################
+/.idea
+/.vscode
+/.fleet
+/.nova
+/.zed
+/.phpstorm.meta.php
+*.swp
+*.swo
+*~
+Sublime Text*
+*.sublime-workspace
+
+################################################################
+# OS junk
+################################################################
+.DS_Store
 Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+################################################################
+# Custom — ReservaMetriDr: nunca subir credenciales ni dumps
+################################################################
+# Database dumps / scripts
+*.sql
+*.sql.gz
+*.dump
+*.sqlite
+*.sqlite-journal
+database/*.sqlite
+
+# Certificados / llaves
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+ssl/
+
+# Backups y archivos temporales
+*.bak
+*.tmp
+*.orig
+*.rej
+.cache/
+
+# Local config overrides
+.env.local
+.env.*.local
+config/local.php
