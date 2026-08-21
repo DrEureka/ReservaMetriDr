@@ -44,5 +44,19 @@
     "Reservations list": "Listado de reservas",
     "List by date": "Listado por fecha",
     "By location": "Por ubicación",
-    "View more": "Ver más"
+    "View more": "Ver más",
+    "Tables management": "Gestión de mesas",
+    "Tables list": "Listado de mesas",
+    "New table": "Nueva mesa",
+    "Number": "Número",
+    "Table number": "Número de mesa",
+    "Capacity (people)": "Capacidad (personas)",
+    "people": "personas",
+    "Section :letra": "Sección :letra",
+    "Actions": "Acciones",
+    "No tables loaded yet.": "Todavía no hay mesas cargadas.",
+    "Create table": "Crear mesa",
+    "Update table": "Actualizar mesa",
+    "Edit table :nombre": "Editar mesa :nombre",
+    "Delete table :nombre?": "¿Eliminar la mesa :nombre?"
 }
