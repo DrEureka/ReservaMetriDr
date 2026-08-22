@@ -15,9 +15,13 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
-                        {{ __('Mesas') }}
-                    </x-nav-link>
+                    @auth
+                        @if (Auth::user()->esAdmin())
+                            <x-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
+                                {{ __('Mesas') }}
+                            </x-nav-link>
+                        @endif
+                    @endauth
                 </div>
             </div>
 
@@ -73,9 +77,13 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
-                {{ __('Mesas') }}
-            </x-responsive-nav-link>
+            @auth
+                @if (Auth::user()->esAdmin())
+                    <x-responsive-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
+                        {{ __('Mesas') }}
+                    </x-responsive-nav-link>
+                @endif
+            @endauth
         </div>
 
         <!-- Responsive Settings Options -->

@@ -58,5 +58,10 @@
     "Create table": "Crear mesa",
     "Update table": "Actualizar mesa",
     "Edit table :nombre": "Editar mesa :nombre",
-    "Delete table :nombre?": "¿Eliminar la mesa :nombre?"
+    "Delete table :nombre?": "¿Eliminar la mesa :nombre?",
+    "Role": "Rol",
+    "Administrator": "Administrador",
+    "Client": "Cliente",
+    "Forbidden": "Acceso denegado",
+    "You don't have permission to access this section.": "No tenés permisos para acceder a esta sección."
 }
