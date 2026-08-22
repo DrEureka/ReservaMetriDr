@@ -1,3 +1,145 @@
+@import url('https://fonts.bunny.net/css?family=fraunces:400,500,600,700|sort:400,500,600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+        font-family: theme('fontFamily.sans');
+        font-feature-settings: 'ss01', 'cv11';
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        font-feature-settings: 'tnum' 1, 'lnum' 1;
+    }
+
+    .dark body,
+    body.bg-ink-900 {
+        background-image:
+            radial-gradient(ellipse at top, rgba(212, 163, 92, 0.04), transparent 60%),
+            radial-gradient(ellipse at bottom right, rgba(212, 163, 92, 0.02), transparent 50%);
+        background-attachment: fixed;
+    }
+
+    h1, h2, h3 {
+        font-family: theme('fontFamily.display');
+        font-weight: 500;
+        letter-spacing: -0.018em;
+        line-height: 1.1;
+    }
+
+    /* Tabular numerals everywhere a number is shown — alignment */
+    .mesa-num, .fecha, .cantidad, .hora, code, kbd {
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
+    }
+
+    /* Subtle focus ring tuned to our accent */
+    :focus-visible {
+        outline: 2px solid theme('colors.brass.DEFAULT');
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+@layer components {
+    .campo {
+        @apply block w-full rounded-md px-4 py-3
+               focus:border-brass focus:ring-1 focus:ring-brass
+               transition-colors duration-150 ease-brass
+               bg-white border-stone-300 text-stone-900 placeholder-stone-400
+               dark:bg-ink-800 dark:border-ink-600 dark:text-bone-100 dark:placeholder-bone-400;
+    }
+
+    .etiqueta {
+        @apply block text-xs uppercase tracking-wider mb-1.5 font-medium
+               text-stone-500 dark:text-bone-400;
+    }
+
+    .boton {
+        @apply inline-flex items-center justify-center px-5 py-3 rounded-md
+               font-medium text-sm tracking-wide uppercase
+               transition-all duration-200 ease-brass
+               focus:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2;
+    }
+
+    .boton--principal {
+        @apply boton bg-brass text-ink-900 hover:bg-brass-400 shadow-card;
+    }
+
+    .boton--fantasma {
+        @apply boton bg-transparent border
+               text-stone-700 border-stone-300 hover:border-stone-500 hover:text-stone-900
+               dark:text-bone-200 dark:border-ink-600 dark:hover:border-bone-400 dark:hover:text-bone-100;
+    }
+
+    .boton--peligro {
+        @apply boton bg-transparent border
+               text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700
+               dark:text-red-300 dark:border-red-900 dark:hover:bg-red-950 dark:hover:text-red-200;
+    }
+
+    .tarjeta {
+        @apply rounded-lg shadow-card border
+               bg-white border-stone-200
+               dark:bg-ink-800 dark:border-ink-600;
+    }
+
+    .slot {
+        @apply relative flex items-center justify-between gap-2
+               px-4 py-3 min-h-[48px] rounded-md
+               text-sm cursor-pointer select-none
+               transition-all duration-150 ease-brass
+               focus:outline-none focus-visible:border-brass focus-visible:ring-2 focus-visible:ring-brass
+               bg-stone-100 border-stone-300 text-stone-900
+               hover:border-brass hover:bg-stone-200
+               dark:bg-ink-800 dark:border-ink-600 dark:text-bone-100
+               dark:hover:border-brass dark:hover:bg-ink-700;
+    }
+
+    .slot[aria-selected="true"] {
+        @apply bg-brass text-ink-900 border-brass;
+    }
+
+    .slot__mesa {
+        @apply font-mono text-xs tracking-tight
+               text-stone-500 dark:text-bone-400 opacity-70;
+    }
+
+    .slot__capacidad {
+        @apply inline-flex items-center gap-1 text-xs
+               text-stone-500 dark:text-bone-400 opacity-60;
+    }
+
+    .slot-disponible {
+        @apply border-brass/40 hover:border-brass
+               hover:bg-stone-200 dark:hover:bg-ink-700;
+    }
+
+    .slot-agotado {
+        @apply opacity-40 cursor-not-allowed
+               border-stone-300 bg-stone-200/50 hover:border-stone-300 hover:bg-stone-200/50
+               dark:border-ink-700 dark:bg-ink-800/50 dark:hover:border-ink-700 dark:hover:bg-ink-800/50;
+    }
+
+    .stepper-btn {
+        @apply flex items-center justify-center w-11 h-11 rounded-md
+               text-lg font-mono transition-colors duration-150
+               bg-stone-200 border border-stone-300 text-stone-600
+               hover:border-brass hover:text-brass
+               dark:bg-ink-700 dark:border-ink-600 dark:text-bone-300
+               dark:hover:border-brass dark:hover:text-brass;
+    }
+}

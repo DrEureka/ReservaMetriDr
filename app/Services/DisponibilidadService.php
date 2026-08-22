@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Mesa;
 use App\Models\Reserva;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class DisponibilidadService
@@ -38,6 +40,96 @@ class DisponibilidadService
                 : $keyCompleto;
             Redis::del($keySinPrefijo);
         }
+    }
+
+    /**
+     * Calcula disponibilidad para todos los slots de una fecha en batch.
+     * Hace 2 queries (mesas + reservas) en vez de 4×N queries.
+     */
+    public function disponibilidadBatch(CarbonImmutable $fecha, array $slots, int $personas): array
+    {
+        $fechaStr = $fecha->format('Y-m-d');
+
+        $todasMesas = Mesa::orderBy('ubicacion')->orderBy('numero')->get()
+            ->groupBy('ubicacion');
+
+        $reservasDelDia = Reserva::where('fecha', $fechaStr)
+            ->where('estado', Reserva::ESTADO_CONFIRMADA)
+            ->with('mesas')
+            ->get();
+
+        $resultado = [];
+
+        foreach ($slots as $hora) {
+            $inicioSlot = $this->horarios->fechaInicioReserva($fecha, $hora);
+            $finSlot    = $this->horarios->fechaFinReserva($fecha, $hora);
+
+            $mesasOcupadasIds = [];
+
+            foreach ($reservasDelDia as $reserva) {
+                $horaRes = substr((string) $reserva->hora_inicio, 0, 5);
+                $resInicio = $this->horarios->fechaInicioReserva($fecha, $horaRes);
+                $resFin    = $this->horarios->fechaFinReserva($fecha, $horaRes);
+
+                if ($resInicio->lessThan($finSlot) && $resFin->greaterThan($inicioSlot)) {
+                    foreach ($reserva->mesas as $mesa) {
+                        $mesasOcupadasIds[$mesa->id] = true;
+                    }
+                }
+            }
+
+            $totalMesas    = 0;
+            $totalCapacidad = 0;
+
+            foreach (['A', 'B', 'C', 'D'] as $sec) {
+                $libres = collect($todasMesas->get($sec, collect())->all())
+                    ->reject(fn (Mesa $m) => isset($mesasOcupadasIds[$m->id]))
+                    ->filter(fn (Mesa $m) => $m->capacidad >= $personas);
+
+                $cap = (int) $libres->sum('capacidad');
+                $totalMesas    += $libres->count();
+                $totalCapacidad += $cap;
+            }
+
+            $resultado[] = [
+                'hora'               => $hora,
+                'disponible'         => $totalMesas > 0,
+                'total_mesas_libres' => $totalMesas,
+                'total_capacidad'    => $totalCapacidad,
+            ];
+        }
+
+        return $resultado;
+    }
+
+    public function resumenSlot(CarbonImmutable $fecha, string $horaInicio, int $personas): array
+    {
+        $secciones = [];
+        $totalMesas = 0;
+        $totalCapacidad = 0;
+
+        foreach (['A', 'B', 'C', 'D'] as $ubicacion) {
+            $libres = collect($this->mesasLibres($ubicacion, $fecha, $horaInicio))
+                ->filter(fn (array $mesa) => $mesa['capacidad'] >= $personas);
+
+            $capacidad = (int) $libres->sum('capacidad');
+
+            $secciones[$ubicacion] = [
+                'ubicacion'     => $ubicacion,
+                'mesas_libres'  => $libres->count(),
+                'capacidad'     => $capacidad,
+            ];
+
+            $totalMesas    += $libres->count();
+            $totalCapacidad += $capacidad;
+        }
+
+        return [
+            'disponible'         => $totalMesas > 0,
+            'total_mesas_libres' => $totalMesas,
+            'total_capacidad'    => $totalCapacidad,
+            'secciones'          => array_values($secciones),
+        ];
     }
 
     private function calcularMesasLibres(string $ubicacion, CarbonImmutable $fecha, string $horaInicio): array

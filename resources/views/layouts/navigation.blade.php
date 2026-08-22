@@ -1,145 +1,159 @@
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                    </a>
-                </div>
+<nav x-data="{ abierto: false }" class="backdrop-blur border-b sticky top-0 z-30" :class="dark ? 'bg-ink-900/80 border-ink-600' : 'bg-white/80 border-stone-200'">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-14 sm:h-16">
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                    @auth
-                        <x-nav-link :href="route('reservas.create')" :active="request()->routeIs('reservas.create')">
-                            {{ __('Nueva reserva') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('reservas.mis-reservas')" :active="request()->routeIs('reservas.mis-reservas')">
-                            {{ __('Mis reservas') }}
-                        </x-nav-link>
-                        @if (Auth::user()->esAdmin())
-                            <x-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
-                                {{ __('Mesas') }}
-                            </x-nav-link>
-                            <x-nav-link :href="route('admin.listado.index')" :active="request()->routeIs('admin.listado.*')">
-                                {{ __('Reservations list') }}
-                            </x-nav-link>
-                        @endif
-                    @endauth
-                </div>
+            {{-- Brand --}}
+            <a href="{{ route('reservas.create') }}" class="flex items-center gap-2.5 group">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-brass text-ink-900 font-display font-semibold text-lg leading-none">
+                    r
+                </span>
+                <span class="font-display text-base sm:text-lg tracking-tight group-hover:opacity-80"
+                    :class="dark ? 'text-bone-100' : 'text-stone-900'">
+                    ReservaMetriDr
+                </span>
+            </a>
+
+            {{-- Center nav (desktop) --}}
+            <div class="hidden sm:flex items-center gap-6">
+                <x-link-nav :href="route('reservas.create')" :active="request()->routeIs('reservas.create')">
+                    {{ __('Nueva reserva') }}
+                </x-link-nav>
+                <x-link-nav :href="route('reservas.mis-reservas')" :active="request()->routeIs('reservas.mis-reservas')">
+                    {{ __('Mis reservas') }}
+                </x-link-nav>
+                @auth
+                    @if (Auth::user()->esAdmin())
+                        <x-link-nav :href="route('admin.listado.index')" :active="request()->routeIs('admin.listado.*')">
+                            {{ __('Listado') }}
+                        </x-link-nav>
+                        <x-link-nav :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
+                            {{ __('Mesas') }}
+                        </x-link-nav>
+                    @endif
+                @endauth
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <div class="me-3 flex items-center gap-1 text-xs">
+            {{-- Right: theme toggle + lang switcher + auth --}}
+            <div class="hidden sm:flex items-center gap-3">
+                {{-- Theme toggle --}}
+                <button @click="toggle()" class="p-1.5 rounded-md transition-colors"
+                    :class="dark ? 'text-bone-400 hover:text-bone-200 hover:bg-ink-800' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-200'"
+                    :title="dark ? 'Modo claro' : 'Modo oscuro'">
+                    <svg x-show="dark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <svg x-show="!dark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
+
+                <div class="w-px h-4" :class="dark ? 'bg-ink-600' : 'bg-stone-300'"></div>
+
+                {{-- Lang switcher --}}
+                <div class="flex items-center gap-1 text-[11px] font-mono" x-data>
                     <a href="{{ url()->current() }}?lang=es"
-                        class="px-2 py-1 rounded {{ app()->getLocale() === 'es' ? 'bg-gray-200 dark:bg-gray-700 font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700' }}">ES</a>
+                        class="px-1.5 py-0.5 rounded {{ app()->getLocale() === 'es' ? 'bg-brass text-ink-900 font-bold' : '' }}"
+                        :class="app()->getLocale() === 'es' ? '' : (dark ? 'text-bone-400 hover:text-bone-200' : 'text-stone-500 hover:text-stone-700')">es</a>
                     <a href="{{ url()->current() }}?lang=en"
-                        class="px-2 py-1 rounded {{ app()->getLocale() === 'en' ? 'bg-gray-200 dark:bg-gray-700 font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700' }}">EN</a>
+                        class="px-1.5 py-0.5 rounded {{ app()->getLocale() === 'en' ? 'bg-brass text-ink-900 font-bold' : '' }}"
+                        :class="app()->getLocale() === 'en' ? '' : (dark ? 'text-bone-400 hover:text-bone-200' : 'text-stone-500 hover:text-stone-700')">en</a>
                 </div>
 
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                @auth
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
+                        @csrf
+                        <button type="submit" class="text-xs uppercase tracking-wider"
+                            :class="dark ? 'text-bone-400 hover:text-bone-100' : 'text-stone-500 hover:text-stone-900'">
+                            {{ __('Salir') }}
                         </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="text-xs uppercase tracking-wider"
+                        :class="dark ? 'text-bone-300 hover:text-bone-100' : 'text-stone-600 hover:text-stone-900'">
+                        {{ __('Entrar') }}
+                    </a>
+                    <a href="{{ route('register') }}" class="text-xs uppercase tracking-wider px-3 py-1.5 rounded border transition-colors duration-150 border-brass text-brass hover:bg-brass hover:text-ink-900">
+                        {{ __('Registro') }}
+                    </a>
+                @endauth
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            {{-- Mobile: theme toggle + lang + hamburger --}}
+            <div class="flex sm:hidden items-center gap-2">
+                <button @click="toggle()" class="p-1.5 rounded-md transition-colors"
+                    :class="dark ? 'text-bone-400 hover:text-bone-200' : 'text-stone-500 hover:text-stone-700'">
+                    <svg x-show="dark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <svg x-show="!dark" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
+                <div class="flex items-center gap-1 text-[11px] font-mono">
+                    <a href="{{ url()->current() }}?lang=es"
+                        class="px-1.5 py-0.5 rounded {{ app()->getLocale() === 'es' ? 'bg-brass text-ink-900 font-bold' : '' }}"
+                        :class="app()->getLocale() === 'es' ? '' : (dark ? 'text-bone-400' : 'text-stone-500')">es</a>
+                    <a href="{{ url()->current() }}?lang=en"
+                        class="px-1.5 py-0.5 rounded {{ app()->getLocale() === 'en' ? 'bg-brass text-ink-900 font-bold' : '' }}"
+                        :class="app()->getLocale() === 'en' ? '' : (dark ? 'text-bone-400' : 'text-stone-500')">en</a>
+                </div>
+                <button @click="abierto = ! abierto"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-md focus:outline-none"
+                    :class="dark ? 'text-bone-300 hover:text-bone-100 hover:bg-ink-800' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200'">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path x-show="!abierto" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        <path x-show="abierto" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+    {{-- Mobile menu --}}
+    <div x-show="abierto" x-collapse class="sm:hidden border-t" :class="dark ? 'border-ink-600' : 'border-stone-200'">
+        <div class="px-4 py-3 space-y-1">
+            <a href="{{ route('reservas.create') }}"
+                class="block px-3 py-2 rounded text-sm"
+                x-data="{ activo: {{ Js::from(request()->routeIs('reservas.create')) }} }"
+                :class="activo ? 'bg-brass text-ink-900 font-medium' : (dark ? 'text-bone-200 hover:bg-ink-800' : 'text-stone-700 hover:bg-stone-100')">
+                {{ __('Nueva reserva') }}
+            </a>
+            <a href="{{ route('reservas.mis-reservas') }}"
+                class="block px-3 py-2 rounded text-sm"
+                x-data="{ activo: {{ Js::from(request()->routeIs('reservas.mis-reservas')) }} }"
+                :class="activo ? 'bg-brass text-ink-900 font-medium' : (dark ? 'text-bone-200 hover:bg-ink-800' : 'text-stone-700 hover:bg-stone-100')">
+                {{ __('Mis reservas') }}
+            </a>
             @auth
-                <x-responsive-nav-link :href="route('reservas.create')" :active="request()->routeIs('reservas.create')">
-                    {{ __('Nueva reserva') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('reservas.mis-reservas')" :active="request()->routeIs('reservas.mis-reservas')">
-                    {{ __('Mis reservas') }}
-                </x-responsive-nav-link>
                 @if (Auth::user()->esAdmin())
-                    <x-responsive-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
+                    <a href="{{ route('admin.listado.index') }}"
+                        class="block px-3 py-2 rounded text-sm"
+                        :class="dark ? 'text-bone-200 hover:bg-ink-800' : 'text-stone-700 hover:bg-stone-100'">
+                        {{ __('Listado') }}
+                    </a>
+                    <a href="{{ route('admin.mesas.index') }}"
+                        class="block px-3 py-2 rounded text-sm"
+                        :class="dark ? 'text-bone-200 hover:bg-ink-800' : 'text-stone-700 hover:bg-stone-100'">
                         {{ __('Mesas') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('admin.listado.index')" :active="request()->routeIs('admin.listado.*')">
-                        {{ __('Reservations list') }}
-                    </x-responsive-nav-link>
+                    </a>
                 @endif
-            @endauth
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-            <div class="px-4 flex items-center gap-2 mb-2">
-                <a href="{{ url()->current() }}?lang=es"
-                    class="px-2 py-1 text-xs rounded {{ app()->getLocale() === 'es' ? 'bg-gray-200 dark:bg-gray-700 font-bold' : 'text-gray-500' }}">ES</a>
-                <a href="{{ url()->current() }}?lang=en"
-                    class="px-2 py-1 text-xs rounded {{ app()->getLocale() === 'en' ? 'bg-gray-200 dark:bg-gray-700 font-bold' : 'text-gray-500' }}">EN</a>
-            </div>
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                    <button type="submit" class="block w-full text-left px-3 py-2 rounded text-sm"
+                        :class="dark ? 'text-bone-400 hover:bg-ink-800' : 'text-stone-500 hover:bg-stone-100'">
+                        {{ __('Salir') }}
+                    </button>
                 </form>
-            </div>
+            @else
+                <a href="{{ route('login') }}" class="block px-3 py-2 rounded text-sm"
+                    :class="dark ? 'text-bone-200 hover:bg-ink-800' : 'text-stone-700 hover:bg-stone-100'">
+                    {{ __('Entrar') }}
+                </a>
+                <a href="{{ route('register') }}" class="block px-3 py-2 rounded text-sm"
+                    :class="dark ? 'text-bone-200 hover:bg-ink-800' : 'text-stone-700 hover:bg-stone-100'">
+                    {{ __('Registro') }}
+                </a>
+            @endauth
         </div>
     </div>
 </nav>

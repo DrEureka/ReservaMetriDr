@@ -1,130 +1,139 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+    <x-slot name="encabezado">
+        <div class="text-center">
+            <p class="text-[11px] font-mono uppercase tracking-[0.2em] text-brass">
+                {{ __('Tu historial') }}
+            </p>
+            <h1 class="font-display text-display-sm sm:text-display-md mt-2">
                 {{ __('Mis reservas') }}
-            </h2>
-            <a href="{{ route('reservas.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white transition ease-in-out duration-150">
-                {{ __('Nueva reserva') }}
-            </a>
+            </h1>
         </div>
     </x-slot>
 
-    <div class="py-8">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-            @if (session('exito'))
-                <div class="mb-4 rounded-md bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4 text-sm text-green-800 dark:text-green-200">
-                    {{ session('exito') }}
-                </div>
-            @endif
+    <div class="px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-3xl mx-auto">
 
-            @if (session()->has('errors') && collect(session('errors')->all())->count())
-                <div class="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 text-sm text-red-800 dark:text-red-200">
-                    @foreach (session('errors')->all() as $error)
-                        <p>{{ $error }}</p>
-                    @endforeach
+            @guest
+                <div class="tarjeta p-5 sm:p-8 mb-6">
+                    <p class="text-stone-500 dark:text-bone-300 text-sm mb-4">
+                        {{ __('Ingresá el email con el que hiciste la reserva.') }}
+                    </p>
+                    <form method="POST" action="{{ route('reservas.mis-reservas.buscar') }}" class="flex flex-col sm:flex-row gap-2">
+                        @csrf
+                        <input type="email" name="email" required
+                            value="{{ old('email', $email_buscado ?? '') }}"
+                            placeholder="tu@email.com" autocomplete="email"
+                            class="campo flex-1">
+                        <button type="submit" class="boton--principal whitespace-nowrap">
+                            {{ __('Buscar') }}
+                        </button>
+                    </form>
                 </div>
-            @endif
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Código') }}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Fecha') }}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Hora') }}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Ubicación') }}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Mesas') }}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Personas') }}
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Estado') }}
-                            </th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                {{ __('Acciones') }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @forelse ($reservas as $reserva)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                @if (($no_encontrado ?? false) === true)
+                    <div class="tarjeta p-5 text-center">
+                        <p class="text-stone-500 dark:text-bone-300">
+                            {{ __('No hay reservas con ese email.') }}
+                        </p>
+                        <a href="{{ route('reservas.create') }}" class="mt-3 inline-block text-brass hover:underline">
+                            {{ __('Hacé tu primera reserva →') }}
+                        </a>
+                    </div>
+                @endif
+            @endguest
+
+            @if (isset($reservas) && $reservas !== null && $reservas->count())
+                <div class="tarjeta divide-y divide-stone-200 dark:divide-ink-600">
+                    @foreach ($reservas as $reserva)
+                        <article class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                            <div class="flex items-center gap-4 sm:flex-col sm:items-start sm:gap-2 sm:w-32">
+                                <span class="font-mono text-stone-500 dark:text-bone-400 text-xs">
                                     #{{ $reserva->id }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ fechaAR($reserva->fecha) }}
-                                    <span class="block text-xs text-gray-500 dark:text-gray-400">
-                                        {{ __(':mins minutos', ['mins' => 120]) }}
+                                </span>
+                                <div class="flex sm:flex-col gap-2 sm:gap-1">
+                                    <span class="font-display text-lg leading-none">{{ fechaAR($reserva->fecha) }}</span>
+                                    <span class="font-mono text-sm text-stone-500 dark:text-bone-400">
+                                        {{ substr($reserva->hora_inicio, 0, 5) }}–{{ substr($reserva->hora_fin, 0, 5) }}
                                     </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ substr($reserva->hora_inicio, 0, 5) }}–{{ substr($reserva->hora_fin, 0, 5) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ __('reservas.ubicaciones.' . $reserva->ubicacion) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $reserva->nombresMesas() }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $reserva->cantidad_personas }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                </div>
+                            </div>
+
+                            <div class="flex-1 grid grid-cols-2 gap-2 sm:gap-4 text-sm">
+                                <div>
+                                    <div class="etiqueta !mb-0">{{ __('Sección') }}</div>
+                                    <div>{{ __('reservas.ubicaciones.' . $reserva->ubicacion) }}</div>
+                                </div>
+                                <div>
+                                    <div class="etiqueta !mb-0">{{ __('Mesas') }}</div>
+                                    <div class="font-mono">{{ $reserva->nombresMesas() }}</div>
+                                </div>
+                                <div>
+                                    <div class="etiqueta !mb-0">{{ __('Personas') }}</div>
+                                    <div class="mesa-num">{{ $reserva->cantidad_personas }}</div>
+                                </div>
+                                <div>
+                                    <div class="etiqueta !mb-0">{{ __('Estado') }}</div>
                                     @if ($reserva->estaCancelada())
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase tracking-wider bg-red-950 border border-red-900 text-red-200">
                                             {{ __('Cancelada') }}
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase tracking-wider bg-brass/15 border border-brass/30 text-brass">
                                             {{ __('Confirmada') }}
                                         </span>
                                     @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                </div>
+                            </div>
+
+                            <div class="sm:w-32 sm:text-right">
+                                @auth
                                     @if ($reserva->estaConfirmada())
-                                        <form action="{{ route('admin.reservas.cancelar', $reserva) }}" method="POST" class="inline"
-                                            onsubmit="return confirm('{{ __('¿Cancelar la reserva #:id?', ['id' => $reserva->id]) }}')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-200">
-                                                {{ __('Cancelar') }}
-                                            </button>
+                                        <form action="{{ route('admin.reservas.cancelar', $reserva) }}" method="POST"
+                                            x-data x-on:submit.prevent="
+                                                Swal.fire({
+                                                    icon: 'warning',
+                                                    title: '{{ __('¿Cancelar la reserva #:id?', ["id" => $reserva->id]) }}',
+                                                    showCancelButton: true,
+                                                    confirmButtonText: '{{ __("Cancelar") }}',
+                                                    cancelButtonText: '{{ __("Volver") }}',
+                                                    confirmButtonColor: '#dc2626',
+                                                    background: dark ? '#1a1f1d' : '#ffffff',
+                                                    color: dark ? '#e8e0d4' : '#1c1917',
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) $el.submit();
+                                                })
+                                            ">
+                                            @csrf @method('DELETE')
+                                        <button type="submit" class="boton--peligro w-full sm:w-auto">
+                                            {{ __('Cancelar') }}
+                                        </button>
                                         </form>
                                     @else
-                                        <span class="text-gray-400">—</span>
+                                        <span class="text-xs text-stone-500 dark:text-bone-400">—</span>
                                     @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    {{ __('Todavía no tenés reservas.') }}
-                                    <a href="{{ route('reservas.create') }}" class="block mt-2 text-indigo-600 dark:text-indigo-400 hover:underline">
-                                        {{ __('Hacé tu primera reserva') }}
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                @else
+                                    <span class="text-xs text-stone-500 dark:text-bone-400">{{ __('Vía mail') }}</span>
+                                @endauth
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
 
-            <div class="mt-4">
-                {{ $reservas->links() }}
-            </div>
+                <div class="mt-6">{{ $reservas->links() }}</div>
+            @elseif (isset($reservas) && $reservas !== null && $reservas->count() === 0)
+                <div class="tarjeta p-8 text-center">
+                    <p class="text-stone-500 dark:text-bone-300">
+                        @auth
+                            {{ __('Todavía no tenés reservas.') }}
+                        @else
+                            {{ __('No hay reservas con ese email.') }}
+                        @endauth
+                    </p>
+                    <a href="{{ route('reservas.create') }}" class="mt-3 inline-block text-brass hover:underline">
+                        {{ __('Hacé tu primera reserva →') }}
+                    </a>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>
