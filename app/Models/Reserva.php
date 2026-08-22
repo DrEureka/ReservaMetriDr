@@ -31,8 +31,6 @@ class Reserva extends Model
     {
         return [
             'fecha'             => 'date',
-            'hora_inicio'       => 'datetime:H:i',
-            'hora_fin'          => 'datetime:H:i',
             'cantidad_personas' => 'integer',
             'cancelada_at'      => 'datetime',
         ];
