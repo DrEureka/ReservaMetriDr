@@ -95,7 +95,10 @@ class HorarioService
 
         $fin = CarbonImmutable::createFromFormat('H:i', $this->calcularHoraFin($horaInicio));
 
-        if ($rango && ($rango['cruza_medianoche'] ?? false) && $fin->lessThan(CarbonImmutable::createFromFormat('H:i', $horaInicio))) {
+        $cruza = ($rango && ($rango['cruza_medianoche'] ?? false))
+            || $fin->lessThan(CarbonImmutable::createFromFormat('H:i', $horaInicio));
+
+        if ($cruza) {
             return $fecha->addDay()->setTimeFrom($fin);
         }
 
