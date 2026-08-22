@@ -19,7 +19,7 @@
                 </div>
             @endif
 
-            @if (session()->has('errors'))
+            @if (session()->has('errors') && collect(session('errors')->all())->count())
                 <div class="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 text-sm text-red-800 dark:text-red-200">
                     @foreach (session('errors')->all() as $error)
                         <p>{{ $error }}</p>
@@ -65,6 +65,9 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                     {{ fechaAR($reserva->fecha) }}
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400">
+                                        {{ __(':mins minutos', ['mins' => 120]) }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                     {{ substr($reserva->hora_inicio, 0, 5) }}–{{ substr($reserva->hora_fin, 0, 5) }}
@@ -109,6 +112,9 @@
                             <tr>
                                 <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                     {{ __('Todavía no tenés reservas.') }}
+                                    <a href="{{ route('reservas.create') }}" class="block mt-2 text-indigo-600 dark:text-indigo-400 hover:underline">
+                                        {{ __('Hacé tu primera reserva') }}
+                                    </a>
                                 </td>
                             </tr>
                         @endforelse
