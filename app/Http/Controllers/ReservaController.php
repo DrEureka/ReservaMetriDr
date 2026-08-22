@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreReservaRequest;
+use App\Mail\ReservaConfirmada;
 use App\Models\Reserva;
 use App\Services\AsignacionUbicacionService;
 use App\Services\DisponibilidadService;
@@ -10,7 +11,9 @@ use App\Services\HorarioService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\URL;
 
 class ReservaController extends Controller
 {
@@ -90,8 +93,30 @@ class ReservaController extends Controller
             Redis::del($llaveLock);
         }
 
+        Mail::to($solicitud->user()->email)
+            ->send(
+                (new ReservaConfirmada($reserva, $this->urlCancelar($reserva)))
+                    ->onQueue('emails')
+            );
+
         return redirect()
             ->route('reservas.mis-reservas')
             ->with('exito', "Reserva #{$reserva->id} creada en sección {$asignacion['ubicacion']}.");
+    }
+
+    public function misReservas(): mixed
+    {
+        $reservas = Reserva::where('user_id', auth()->id())
+            ->orderByDesc('fecha')
+            ->orderByDesc('hora_inicio')
+            ->with('mesas')
+            ->paginate(15);
+
+        return view('reservas.mis-reservas', ['reservas' => $reservas]);
+    }
+
+    private function urlCancelar(Reserva $reserva): string
+    {
+        return URL::signedRoute('reservas.cancelar', ['reserva' => $reserva->id], now()->addDays(7));
     }
 }

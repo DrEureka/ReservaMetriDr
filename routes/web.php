@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\MesaController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReservaCancelacionController;
 use App\Http\Controllers\ReservaController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,8 +21,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/reservas', [ReservaController::class, 'create'])->name('reservas.create');
     Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
-    Route::get('/mis-reservas', fn () => view('reservas.mis-reservas'))
-        ->name('reservas.mis-reservas');
+    Route::get('/mis-reservas', [ReservaController::class, 'misReservas'])->name('reservas.mis-reservas');
+    Route::get('/reservas/{reserva}/cancelar', [ReservaCancelacionController::class, 'cancelar'])
+        ->middleware('signed')
+        ->name('reservas.cancelar');
 });
 
 Route::middleware(['auth', 'admin'])
@@ -29,6 +32,8 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
         Route::resource('mesas', MesaController::class)->except(['show']);
+        Route::delete('reservas/{reserva}', [ReservaCancelacionController::class, 'cancelar'])
+            ->name('reservas.cancelar');
     });
 
 require __DIR__.'/auth.php';

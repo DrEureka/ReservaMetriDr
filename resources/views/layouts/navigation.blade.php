@@ -16,6 +16,12 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     @auth
+                        <x-nav-link :href="route('reservas.create')" :active="request()->routeIs('reservas.create')">
+                            {{ __('Nueva reserva') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('reservas.mis-reservas')" :active="request()->routeIs('reservas.mis-reservas')">
+                            {{ __('Mis reservas') }}
+                        </x-nav-link>
                         @if (Auth::user()->esAdmin())
                             <x-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
                                 {{ __('Mesas') }}
@@ -78,6 +84,12 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             @auth
+                <x-responsive-nav-link :href="route('reservas.create')" :active="request()->routeIs('reservas.create')">
+                    {{ __('Nueva reserva') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('reservas.mis-reservas')" :active="request()->routeIs('reservas.mis-reservas')">
+                    {{ __('Mis reservas') }}
+                </x-responsive-nav-link>
                 @if (Auth::user()->esAdmin())
                     <x-responsive-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
                         {{ __('Mesas') }}
