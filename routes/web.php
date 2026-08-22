@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ListadoController;
 use App\Http\Controllers\Admin\MesaController;
 use App\Http\Controllers\Api\HorariosController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,7 @@ Route::middleware(['auth', 'admin'])
         Route::resource('mesas', MesaController::class)->except(['show']);
         Route::delete('reservas/{reserva}', [ReservaCancelacionController::class, 'cancelar'])
             ->name('reservas.cancelar');
+        Route::get('listado', [ListadoController::class, 'index'])->name('listado.index');
     });
 
 require __DIR__.'/auth.php';
