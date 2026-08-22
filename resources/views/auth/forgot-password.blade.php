@@ -1,25 +1,35 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
+    <div class="text-center mb-6">
+        <h2 class="font-display text-xl">{{ __('¿Olvidaste la contraseña?') }}</h2>
+        <p class="text-sm text-bone-400 mt-2">
+            {{ __('Te mandamos un link para restablecerla.') }}
+        </p>
     </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    @if (session('status'))
+        <div class="mb-4 rounded-md border border-brass bg-brass/10 px-4 py-3 text-sm text-brass">
+            {{ session('status') }}
+        </div>
+    @endif
 
-    <form method="POST" action="{{ route('password.email') }}">
+    <form method="POST" action="{{ route('password.email') }}" class="space-y-5">
         @csrf
 
-        <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <label class="etiqueta" for="email">{{ __('Email') }}</label>
+            <input id="email" name="email" type="email" required autofocus
+                value="{{ old('email') }}" class="campo">
+            @error('email')<p class="mt-1 text-xs text-red-300">{{ $message }}</p>@enderror
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
-        </div>
+        <button type="submit" class="boton--principal w-full">
+            {{ __('Enviar link de restablecimiento') }}
+        </button>
+
+        <p class="text-center text-xs text-bone-400 pt-2 border-t border-ink-600">
+            <a href="{{ route('login') }}" class="text-brass hover:text-brass-400">
+                ← {{ __('Volver al login') }}
+            </a>
+        </p>
     </form>
 </x-guest-layout>

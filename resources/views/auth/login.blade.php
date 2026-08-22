@@ -1,47 +1,46 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" class="space-y-5">
         @csrf
 
-        <!-- Email Address -->
+        <div class="text-center mb-2">
+            <h2 class="font-display text-xl">{{ __('Entrar') }}</h2>
+            <p class="text-[11px] font-mono text-bone-400 mt-1">{{ __('Panel de administración') }}</p>
+        </div>
+
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <label class="etiqueta" for="email">{{ __('Email') }}</label>
+            <input id="email" name="email" type="email" required autofocus autocomplete="username"
+                value="{{ old('email') }}" placeholder="admin@email.com" class="campo">
+            @error('email')<p class="mt-1 text-xs text-red-300">{{ $message }}</p>@enderror
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div>
+            <label class="etiqueta" for="password">{{ __('Contraseña') }}</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password"
+                class="campo">
+            @error('password')<p class="mt-1 text-xs text-red-300">{{ $message }}</p>@enderror
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+        <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="remember"
+                    class="w-4 h-4 rounded border-ink-500 bg-ink-700 text-brass focus:ring-brass focus:ring-offset-ink-800">
+                <span class="text-sm text-bone-400">{{ __('Recordarme') }}</span>
             </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
+                <a href="{{ route('password.request') }}" class="text-xs text-brass hover:text-brass-400">
+                    {{ __('¿Olvidaste la contraseña?') }}
                 </a>
             @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
         </div>
+
+        <button type="submit" class="boton--principal w-full">
+            {{ __('Entrar') }}
+        </button>
+
+        <p class="text-center text-xs text-bone-400 pt-2 border-t border-ink-600">
+            {{ __('¿No tenés cuenta?') }}
+            <a href="{{ route('register') }}" class="text-brass hover:text-brass-400">{{ __('Registrate') }}</a>
+        </p>
     </form>
 </x-guest-layout>
