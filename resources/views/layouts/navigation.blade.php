@@ -26,6 +26,9 @@
                             <x-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
                                 {{ __('Mesas') }}
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.listado.index')" :active="request()->routeIs('admin.listado.*')">
+                                {{ __('Reservations list') }}
+                            </x-nav-link>
                         @endif
                     @endauth
                 </div>
@@ -100,6 +103,9 @@
                 @if (Auth::user()->esAdmin())
                     <x-responsive-nav-link :href="route('admin.mesas.index')" :active="request()->routeIs('admin.mesas.*')">
                         {{ __('Mesas') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.listado.index')" :active="request()->routeIs('admin.listado.*')">
+                        {{ __('Reservations list') }}
                     </x-responsive-nav-link>
                 @endif
             @endauth
