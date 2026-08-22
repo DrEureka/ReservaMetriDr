@@ -17,6 +17,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->app['view']->addNamespace('mail', resource_path('views/vendor/mail'));
+
         Mail::extend('smtp_relaja', function (array $config) {
             $factory = new EsmtpTransportFactory();
 
