@@ -9,15 +9,19 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        $email    = env('ADMIN_EMAIL', 'admin@example.com');
+        $password = env('ADMIN_PASSWORD', 'Cambiar1234');
+        $nombre   = env('ADMIN_NAME', 'Administrador');
+
         User::firstOrCreate(
-            ['email' => 'admin@dramadan.com'],
+            ['email' => $email],
             [
-                'name'     => 'Administrador',
-                'password' => 'Cambiar1234',
+                'name'     => $nombre,
+                'password' => $password,
                 'role'     => User::ROL_ADMIN,
             ]
         );
 
-        $this->command?->info('Admin creado: admin@dramadan.com / Cambiar1234');
+        $this->command?->info("Admin creado: {$email}");
     }
 }
