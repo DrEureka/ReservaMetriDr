@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\MesaController;
+use App\Http\Controllers\Api\HorariosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservaCancelacionController;
 use App\Http\Controllers\ReservaController;
@@ -25,6 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservas/{reserva}/cancelar', [ReservaCancelacionController::class, 'cancelar'])
         ->middleware('signed')
         ->name('reservas.cancelar');
+
+    Route::get('/api/horarios', [HorariosController::class, 'slots'])->name('api.horarios.slots');
 });
 
 Route::middleware(['auth', 'admin'])
