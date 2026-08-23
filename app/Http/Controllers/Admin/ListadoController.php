@@ -68,8 +68,7 @@ class ListadoController extends Controller
                      u.id,
                      u.name,
                      u.email
-            ORDER BY r.ubicacion ASC,
-                     FIELD(r.ubicacion, 'A','B','C','D'),
+            ORDER BY FIELD(r.ubicacion, 'A','B','C','D'),
                      r.hora_inicio ASC
         SQL;
 
