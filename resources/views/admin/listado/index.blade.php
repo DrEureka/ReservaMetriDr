@@ -25,8 +25,9 @@
                     <strong class="font-display text-stone-900 dark:text-bone-100 ml-1">{{ fechaAR($fecha) }}</strong>
                 </div>
                 <div class="font-mono text-sm text-brass">
-                    @if (! empty($reservas))
-                        {{ count($reservas) }} {{ count($reservas) === 1 ? __('reserva') : __('reservas') }}
+                    @php $totalReservas = is_array($reservas) ? count($reservas) : 0; @endphp
+                    @if ($totalReservas > 0)
+                        {{ $totalReservas }} {{ $totalReservas === 1 ? 'reserva' : 'reservas' }}
                     @else
                         {{ __('Sin reservas') }}
                     @endif
