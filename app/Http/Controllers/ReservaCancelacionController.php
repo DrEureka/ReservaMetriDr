@@ -51,8 +51,10 @@ class ReservaCancelacionController extends Controller
             $this->disponibilidad->invalidar($u, $fecha);
         }
 
-        Mail::to($reserva->usuario->email)
-            ->send((new ReservaCancelada($reserva))->onQueue('emails'));
+        try {
+            Mail::to($reserva->usuario->email)
+                ->send((new ReservaCancelada($reserva))->onQueue('emails'));
+        } catch (\Throwable) {}
 
         if (auth()->check()) {
             return redirect()

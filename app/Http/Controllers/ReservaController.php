@@ -109,11 +109,13 @@ class ReservaController extends Controller
             Cache::forget($llaveLock);
         }
 
-        Mail::to($reserva->usuario->email)
-            ->send(
-                (new ReservaConfirmada($reserva, $this->urlCancelar($reserva)))
-                    ->onQueue('emails')
-            );
+        try {
+            Mail::to($reserva->usuario->email)
+                ->send(
+                    (new ReservaConfirmada($reserva, $this->urlCancelar($reserva)))
+                        ->onQueue('emails')
+                );
+        } catch (\Throwable) {}
 
         $mensaje = "Reserva #{$reserva->id} creada en sección {$asignacion['ubicacion']}.";
 
