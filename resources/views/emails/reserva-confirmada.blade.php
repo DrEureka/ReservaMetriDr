@@ -8,18 +8,18 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #0F1614;
+            background-color: #F5F2ED;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
         .wrapper {
-            background-color: #0F1614;
+            background-color: #F5F2ED;
             padding: 40px 20px;
         }
         .container {
             max-width: 560px;
             margin: 0 auto;
-            background-color: #1A2320;
+            background-color: #FFFFFF;
             border-radius: 12px;
             overflow: hidden;
         }
@@ -39,7 +39,7 @@
         .tagline {
             font-size: 11px;
             color: #0F1614;
-            opacity: 0.7;
+            opacity: 0.6;
             text-transform: uppercase;
             letter-spacing: 2px;
             margin: 4px 0 0 0;
@@ -49,21 +49,21 @@
         }
         .greeting {
             font-size: 15px;
-            color: #E8E0D4;
+            color: #1F2937;
             margin: 0 0 32px 0;
             line-height: 1.6;
         }
         .code-badge {
             display: inline-block;
-            background-color: rgba(212, 163, 92, 0.15);
-            border: 1px solid rgba(212, 163, 92, 0.3);
+            background-color: #F5F2ED;
+            border: 1px solid #E5DDD4;
             border-radius: 8px;
             padding: 12px 24px;
             margin-bottom: 32px;
         }
         .code-label {
             font-size: 11px;
-            color: #9C9688;
+            color: #6B7280;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             display: block;
@@ -73,11 +73,11 @@
             font-family: 'Courier New', monospace;
             font-size: 24px;
             font-weight: 700;
-            color: #D4A35C;
+            color: #B8860B;
             letter-spacing: 2px;
         }
         .details {
-            background-color: rgba(255, 255, 255, 0.03);
+            background-color: #FAFAF9;
             border-radius: 8px;
             padding: 24px;
             margin-bottom: 32px;
@@ -85,7 +85,7 @@
         .detail-row {
             display: flex;
             padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid #F3F0EC;
         }
         .detail-row:last-child {
             border-bottom: none;
@@ -96,7 +96,7 @@
         }
         .detail-label {
             font-size: 12px;
-            color: #9C9688;
+            color: #6B7280;
             text-transform: uppercase;
             letter-spacing: 1px;
             width: 120px;
@@ -104,23 +104,23 @@
         }
         .detail-value {
             font-size: 15px;
-            color: #E8E0D4;
+            color: #1F2937;
             font-weight: 500;
         }
         .notice {
             font-size: 13px;
-            color: #9C9688;
+            color: #6B7280;
             line-height: 1.6;
             margin: 0 0 32px 0;
             padding: 16px;
-            background-color: rgba(212, 163, 92, 0.08);
+            background-color: #FEF9EE;
             border-radius: 8px;
             border-left: 3px solid #D4A35C;
         }
         .button {
             display: inline-block;
-            background-color: transparent;
-            color: #DC2626;
+            background-color: #DC2626;
+            color: #FFFFFF;
             text-decoration: none;
             padding: 14px 32px;
             border-radius: 8px;
@@ -128,36 +128,30 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border: 1px solid rgba(220, 38, 38, 0.4);
-            transition: all 0.2s ease;
-        }
-        .button:hover {
-            background-color: rgba(220, 38, 38, 0.1);
-            border-color: #DC2626;
         }
         .footer {
             padding: 32px 40px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid #F3F0EC;
             text-align: center;
         }
         .footer-text {
             font-size: 12px;
-            color: #6B7280;
+            color: #9CA3AF;
             margin: 0 0 8px 0;
         }
         .footer-link {
             font-size: 11px;
-            color: #9C9688;
+            color: #6B7280;
             word-break: break-all;
             line-height: 1.5;
         }
         .footer-link a {
-            color: #D4A35C;
+            color: #B8860B;
             text-decoration: none;
         }
         .closing {
             font-size: 14px;
-            color: #E8E0D4;
+            color: #1F2937;
             margin: 0;
             font-style: italic;
         }
