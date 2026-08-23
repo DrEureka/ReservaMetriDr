@@ -56,7 +56,7 @@
                                 <div class="mb-5 ml-4 sm:ml-12">
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="text-[11px] font-mono uppercase tracking-[0.18em] text-stone-500 dark:text-bone-400">{{ $info['label'] }}</span>
-                                        <span class="text-[11px] font-mono text-stone-400 dark:text-bone-500">{{ $info['de'] }}–{{ $info['a'] }}</span>
+                                        <span class="text-[11px] font-mono text-stone-400 dark:text-bone-400">{{ $info['de'] }}–{{ $info['a'] }}</span>
                                     </div>
 
                                     <div class="tarjeta overflow-hidden">

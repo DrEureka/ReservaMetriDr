@@ -38,6 +38,9 @@
             {{ __('Entrar') }}
         </button>
 
+        <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
+        @error('cf-turnstile-response')<p class="mt-1 text-xs text-red-300">{{ $message }}</p>@enderror
+
         <p class="text-center text-xs text-bone-400 pt-2 border-t border-ink-600">
             {{ __('¿No tenés cuenta?') }}
             <a href="{{ route('register') }}" class="text-brass hover:text-brass-400">{{ __('Registrate') }}</a>

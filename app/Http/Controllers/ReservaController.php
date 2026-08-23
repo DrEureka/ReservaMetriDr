@@ -157,8 +157,7 @@ class ReservaController extends Controller
             ]);
         }
 
-        $reservas = $query->orderByDesc('fecha')
-            ->orderByDesc('hora_inicio')
+        $reservas = $query->orderByDesc('id')
             ->with('mesas')
             ->paginate(15);
 

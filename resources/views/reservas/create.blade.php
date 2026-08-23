@@ -211,13 +211,13 @@
                 if (s.disponible) {
                     btn.className = 'slot slot-disponible';
                     btn.innerHTML = '<span class="font-mono mesa-num tracking-tight">' + s.hora + '</span>' +
-                        '<span class="text-[10px] text-brass-400">' + s.total_mesas_libres + ' mesas</span>';
+                        '<span class="slot__capacidad">' + s.total_mesas_libres + ' mesas</span>';
                     btn.addEventListener('click', function () { marcar(btn); });
                 } else {
                     btn.className = 'slot slot-agotado';
                     btn.disabled = true;
                     btn.innerHTML = '<span class="font-mono mesa-num tracking-tight">' + s.hora + '</span>' +
-                        '<span class="text-[10px] text-stone-500 dark:text-bone-500">' + T.sinDisp + '</span>';
+                        '<span class="slot__capacidad slot__agotado-text">' + T.sinDisp + '</span>';
                 }
 
                 $wrap.appendChild(btn);
