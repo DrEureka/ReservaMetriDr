@@ -8,23 +8,23 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #0F1614;
+            background-color: #F5F2ED;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
         .wrapper {
-            background-color: #0F1614;
+            background-color: #F5F2ED;
             padding: 40px 20px;
         }
         .container {
             max-width: 560px;
             margin: 0 auto;
-            background-color: #1A2320;
+            background-color: #FFFFFF;
             border-radius: 12px;
             overflow: hidden;
         }
         .header {
-            background-color: #374151;
+            background-color: #6B7280;
             padding: 32px 40px;
             text-align: center;
         }
@@ -32,13 +32,14 @@
             font-family: Georgia, 'Times New Roman', serif;
             font-size: 28px;
             font-weight: 600;
-            color: #E8E0D4;
+            color: #FFFFFF;
             letter-spacing: -0.5px;
             margin: 0;
         }
         .tagline {
             font-size: 11px;
-            color: #9C9688;
+            color: #FFFFFF;
+            opacity: 0.7;
             text-transform: uppercase;
             letter-spacing: 2px;
             margin: 4px 0 0 0;
@@ -48,21 +49,21 @@
         }
         .greeting {
             font-size: 15px;
-            color: #E8E0D4;
+            color: #1F2937;
             margin: 0 0 32px 0;
             line-height: 1.6;
         }
         .code-badge {
             display: inline-block;
-            background-color: rgba(220, 38, 38, 0.1);
-            border: 1px solid rgba(220, 38, 38, 0.3);
+            background-color: #FEF2F2;
+            border: 1px solid #FECACA;
             border-radius: 8px;
             padding: 12px 24px;
             margin-bottom: 32px;
         }
         .code-label {
             font-size: 11px;
-            color: #9C9688;
+            color: #6B7280;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             display: block;
@@ -76,7 +77,7 @@
             letter-spacing: 2px;
         }
         .details {
-            background-color: rgba(255, 255, 255, 0.03);
+            background-color: #FAFAF9;
             border-radius: 8px;
             padding: 24px;
             margin-bottom: 32px;
@@ -84,7 +85,7 @@
         .detail-row {
             display: flex;
             padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid #F3F0EC;
         }
         .detail-row:last-child {
             border-bottom: none;
@@ -95,7 +96,7 @@
         }
         .detail-label {
             font-size: 12px;
-            color: #9C9688;
+            color: #6B7280;
             text-transform: uppercase;
             letter-spacing: 1px;
             width: 140px;
@@ -103,18 +104,18 @@
         }
         .detail-value {
             font-size: 15px;
-            color: #E8E0D4;
+            color: #1F2937;
             font-weight: 500;
         }
         .notice {
             font-size: 13px;
-            color: #9C9688;
+            color: #6B7280;
             line-height: 1.6;
             margin: 0 0 32px 0;
             padding: 16px;
-            background-color: rgba(255, 255, 255, 0.03);
+            background-color: #FAFAF9;
             border-radius: 8px;
-            border-left: 3px solid #6B7280;
+            border-left: 3px solid #9CA3AF;
         }
         .button {
             display: inline-block;
@@ -127,25 +128,21 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: all 0.2s ease;
-        }
-        .button:hover {
-            background-color: #C4954D;
         }
         .closing {
             font-size: 14px;
-            color: #E8E0D4;
+            color: #1F2937;
             margin: 0;
             font-style: italic;
         }
         .footer {
             padding: 32px 40px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid #F3F0EC;
             text-align: center;
         }
         .footer-text {
             font-size: 12px;
-            color: #6B7280;
+            color: #9CA3AF;
             margin: 0;
         }
         @media only screen and (max-width: 600px) {
