@@ -54,20 +54,30 @@ class ReservaCancelacionController extends Controller
         Mail::to($reserva->usuario->email)
             ->send((new ReservaCancelada($reserva))->onQueue('emails'));
 
+        if (auth()->check()) {
+            return redirect()
+                ->route('reservas.mis-reservas')
+                ->with('exito', __('Reserva #') . $reserva->id . __(' cancelada correctamente.'));
+        }
+
         return redirect()
-            ->route('reservas.mis-reservas')
+            ->route('reservas.create')
             ->with('exito', __('Reserva #') . $reserva->id . __(' cancelada correctamente.'));
     }
 
     private function asegurarAutor(Reserva $reserva): void
     {
         $usuario = auth()->user();
-        abort_unless($usuario, 403);
 
-        if ($usuario->esAdmin()) {
+        if ($usuario && $usuario->esAdmin()) {
             return;
         }
 
-        abort_unless($reserva->user_id === $usuario->id, 403);
+        if ($usuario) {
+            abort_unless($reserva->user_id === $usuario->id, 403);
+            return;
+        }
+
+        // Link firmado desde email (invitado sin sesión)
     }
 }

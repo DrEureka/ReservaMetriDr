@@ -22,6 +22,7 @@ class StoreReservaRequest extends FormRequest
         if (! $this->user()) {
             $reglas['nombre'] = ['required', 'string', 'min:2', 'max:100'];
             $reglas['email']  = ['required', 'email', 'max:255'];
+            $reglas['cf-turnstile-response'] = ['required'];
         }
 
         return $reglas;

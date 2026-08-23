@@ -91,6 +91,10 @@ return [
             'driver' => 'octane',
         ],
 
+        'upstash-rest' => [
+            'driver' => 'upstash-rest',
+        ],
+
         'failover' => [
             'driver' => 'failover',
             'stores' => [

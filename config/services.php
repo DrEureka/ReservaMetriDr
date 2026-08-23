@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET'),
+    ],
+
+    'upstash' => [
+        'url' => env('UPSTASH_REDIS_REST_URL'),
+        'token' => env('UPSTASH_REDIS_REST_TOKEN'),
+    ],
+
 ];

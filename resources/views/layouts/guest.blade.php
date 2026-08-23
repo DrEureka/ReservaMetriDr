@@ -9,6 +9,7 @@
     <title>{{ $titulo ?? 'ReservaMetriDr' }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script>
@@ -45,13 +46,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                         </svg>
                     </button>
-                    <div class="flex items-center gap-1 text-[11px] font-mono">
+                    <div class="flex items-center gap-1 text-[11px] font-mono" x-data="{ lang: '{{ app()->getLocale() }}' }">
                         <a href="{{ url()->current() }}?lang=es"
-                            class="px-1.5 py-0.5 rounded {{ app()->getLocale() === 'es' ? 'bg-brass text-ink-900 font-bold' : '' }}"
-                            :class="app()->getLocale() === 'es' ? '' : (dark ? 'text-bone-400 hover:text-bone-200' : 'text-stone-500 hover:text-stone-700')">es</a>
+                            class="px-1.5 py-0.5 rounded"
+                            :class="lang === 'es' ? 'bg-brass text-ink-900 font-bold' : (dark ? 'text-bone-400 hover:text-bone-200' : 'text-stone-500 hover:text-stone-700')">es</a>
                         <a href="{{ url()->current() }}?lang=en"
-                            class="px-1.5 py-0.5 rounded {{ app()->getLocale() === 'en' ? 'bg-brass text-ink-900 font-bold' : '' }}"
-                            :class="app()->getLocale() === 'en' ? '' : (dark ? 'text-bone-400 hover:text-bone-200' : 'text-stone-500 hover:text-stone-700')">en</a>
+                            class="px-1.5 py-0.5 rounded"
+                            :class="lang === 'en' ? 'bg-brass text-ink-900 font-bold' : (dark ? 'text-bone-400 hover:text-bone-200' : 'text-stone-500 hover:text-stone-700')">en</a>
                     </div>
                 </div>
             </div>

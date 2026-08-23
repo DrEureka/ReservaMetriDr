@@ -99,6 +99,10 @@
                         </p>
                     </div>
 
+                    <div class="flex justify-center pt-1">
+                        <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
+                    </div>
+
                     <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-3 pt-2 border-t border-ink-600">
                         <a href="{{ route('reservas.mis-reservas') }}" class="boton--fantasma flex-1 text-center" id="btn-mis-reservas">
                             {{ __('Ver mis reservas') }}

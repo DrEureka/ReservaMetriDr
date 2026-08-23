@@ -98,3 +98,5 @@ ssl/
 .env.local
 .env.*.local
 config/local.php
+app.zip
+bootstrap.zip

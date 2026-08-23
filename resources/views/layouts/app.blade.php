@@ -9,6 +9,7 @@
     <title>{{ $titulo ?? 'Reservá tu mesa' }} · ReservaMetriDr</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script>
