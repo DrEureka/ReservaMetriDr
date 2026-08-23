@@ -1,10 +1,10 @@
 # ReservaMetriDr
 
 Sistema de reservas de mesas para restaurante. Permite a clientes registrar
-reservas online y al admin gestionarlas, con notificaciones por mail y
-consulta de disponibilidad con cache Redis.
+reservas online y al admin gestionarlas, con notificaciones por mail,
+consulta de disponibilidad con cache Upstash REST, y protección anti-bot.
 
-**Stack:** Laravel 12 · PHP 8.3 · MySQL · Redis · Blade + Tailwind · Breeze
+**Stack:** Laravel 12 · PHP 8.3 · MySQL · Upstash REST · Blade + Tailwind · Breeze · Alpine.js
 
 ## Funcionalidades
 
@@ -14,8 +14,9 @@ consulta de disponibilidad con cache Redis.
   - Asignación automática de ubicación (primera que tenga mesas libres).
   - Mesas consecutivas correlativas (A-1 + A-2 + A-3) cubriendo la cantidad de
     personas, hasta un máximo de 3 mesas por reserva.
-  - Cache en Redis con TTL hasta fin del día, invalidación al crear/cancelar.
-  - Lock atómico con `SET NX EX` para evitar doble booking en concurrencia.
+  - Cache Upstash REST (HTTPS/443) con TTL hasta fin del día, invalidación al crear/cancelar.
+  - Fallback a database si Upstash falla.
+  - Lock atómico con `Cache::add` para evitar doble booking en concurrencia.
 - **Horarios** por día de la semana (configurables):
   - Lunes a viernes: 10:00 a 24:00
   - Sábado: 22:00 a 02:00 (cruza medianoche)
@@ -26,6 +27,10 @@ consulta de disponibilidad con cache Redis.
 - **Listado admin por fecha** con **una sola consulta SQL** que usa
   `GROUP_CONCAT` para traer las mesas concatenadas, agrupado por ubicación y
   turno (mañana / tarde / noche).
+- **Cloudflare Turnstile** anti-bot en registro, login y reserva de invitados.
+- **Dark / Light mode** con persistencia en localStorage y respeto de `prefers-color-scheme`.
+- **SweetAlert2** para confirmaciones (eliminar mesa, cancelar reserva).
+- **Emails HTML** con diseño responsive light (confirmación y cancelación).
 - **i18n español + inglés** con cambio de idioma via `?lang=es|en` o cookie.
 - Formato argentino para fechas (`dd/MM/yy`) y moneda (`$ 1.234,56`).
 
@@ -35,8 +40,9 @@ consulta de disponibilidad con cache Redis.
 - Composer 2.x.
 - Node 18+ y npm (para assets de frontend).
 - MySQL 8 / MariaDB 10.4+ (probado con MariaDB 10).
-- Redis 6+ o compatible (probado con Upstash vía TLS).
-- Servidor de mail SMTP (probado con Heliohost via `smtp_relaja` driver).
+- Upstash Redis (REST API vía HTTPS, probado en Heliohost que bloquea TCP/6379).
+- Servidor de mail SMTP (probado con Heliohost via `smtp_relaja` driver, límite 50/hora).
+- Cloudflare Turnstile (site key + secret).
 
 ## Instalación
 
@@ -84,9 +90,22 @@ DB_USERNAME=tu_usuario
 DB_PASSWORD="tu_password"   # comillas dobles si tiene caracteres especiales (#, ^, $)
 ```
 
-### Redis (Upstash con TLS como ejemplo)
+### Cache — Upstash REST
+
+En hosts que bloquean TCP/6379 (como Heliohost), se usa la REST API de Upstash
+(vía HTTPS/443). Driver custom `upstash-rest` registrado en `AppServiceProvider`.
 
 ```env
+CACHE_STORE=upstash-rest
+
+UPSTASH_REDIS_REST_URL="https://tu-base.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="tu_token"
+```
+
+Si TCP funciona, usar Redis nativo:
+
+```env
+CACHE_STORE=redis
 REDIS_CLIENT=predis
 REDIS_HOST=tu-host.upstash.io
 REDIS_PORT=6379
@@ -114,9 +133,17 @@ MAIL_FROM_NAME="${APP_NAME}"
 Si tu servidor de mail tiene un cert SSL cuyo CN no matchea el dominio del mail
 (por ejemplo, hosting compartido), usar el driver `smtp_relaja` que está
 registrado en `AppServiceProvider`. Este driver desactiva la verificación
-estricta del cert sin perder la del propio cert.
+estRICTA del cert sin perder la del propio cert.
 
-Si tu cert es válido, podés usar `MAIL_MAILER=smtp` (driver estándar de Laravel).
+> **Nota:** Heliohost tiene un límite de ~50 emails/hora. Los envíos están
+> envueltos en try-catch para que la reserva se registre aunque falle el SMTP.
+
+### Cloudflare Turnstile
+
+```env
+TURNSTILE_SITE_KEY=tu_site_key
+TURNSTILE_SECRET=tu_secret
+```
 
 ### Locales
 
@@ -134,9 +161,12 @@ app/
 ├── Http/
 │   ├── Controllers/
 │   │   ├── Admin/
-│   │   │   ├── ListadoController.php       (consigna 4: listado por fecha)
-│   │   │   └── MesaController.php          (consigna 1: ABM)
+│   │   │   ├── ListadoController.php       (listado por fecha)
+│   │   │   └── MesaController.php          (ABM de mesas)
 │   │   ├── Api/HorariosController.php      (slots AJAX para form)
+│   │   ├── Auth/
+│   │   │   ├── AuthenticatedSessionController.php (login + Turnstile)
+│   │   │   └── RegisteredUserController.php       (registro + Turnstile)
 │   │   ├── ReservaController.php           (crear reserva + mis-reservas)
 │   │   └── ReservaCancelacionController.php (cancelar via URL firmada o admin)
 │   ├── Middleware/
@@ -152,10 +182,13 @@ app/
 │   ├── Mesa.php
 │   ├── Reserva.php
 │   └── User.php                             (con role admin/cliente)
-└── Services/
-    ├── AsignacionUbicacionService.php       (greedy A→B→C→D con corridas consecutivas)
-    ├── DisponibilidadService.php            (cache Redis + cálculo de overlap)
-    └── HorarioService.php                   (reglas de horario por día)
+├── Services/
+│   ├── AsignacionUbicacionService.php       (greedy A→B→C→D con corridas consecutivas)
+│   ├── DisponibilidadService.php            (cache Upstash + cálculo de overlap)
+│   └── HorarioService.php                   (reglas de horario por día)
+└── Support/
+    ├── RedisStatus.php                     (helper de disponibilidad Redis)
+    └── UpstashRestStore.php                (driver cache vía HTTPS)
 ```
 
 ### Base de datos
@@ -180,16 +213,27 @@ php artisan reservas:disponibilidad 2026-08-25 20:00 4 --ubicacion=A
 
 # Re-sembrar el admin (password inicial Cambiar1234)
 php artisan db:seed --class=AdminSeeder
+
+# Limpiar cache (si no hay consola en hosting)
+php artisan optimize:clear
 ```
 
 ## Tests
 
-Cada parte del plan fue validada con scripts PHP independientes durante el
-desarrollo. Para correr la suite formal (si se agregan tests PHPUnit/Pest):
+Tests de autenticación y perfil provistos por Breeze:
 
 ```bash
 php artisan test
 ```
+
+Tests incluidos:
+- `tests/Feature/Auth/AuthenticationTest.php` — login/logout
+- `tests/Feature/Auth/RegistrationTest.php` — registro
+- `tests/Feature/Auth/PasswordResetTest.php` — reset de contraseña
+- `tests/Feature/Auth/PasswordUpdateTest.php` — cambio de contraseña
+- `tests/Feature/Auth/PasswordConfirmationTest.php` — confirmar contraseña
+- `tests/Feature/Auth/EmailVerificationTest.php` — verificación de email
+- `tests/Feature/ProfileTest.php` — edición de perfil
 
 ## Horarios y reglas
 
