@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Support\UpstashRestStore;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Symfony\Component\Mailer\Transport\Dsn;
@@ -18,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->app['view']->addNamespace('mail', resource_path('views/vendor/mail'));
+
+        Cache::extend('upstash-rest', function ($app) {
+            return new UpstashRestStore();
+        });
 
         Mail::extend('smtp_relaja', function (array $config) {
             $factory = new EsmtpTransportFactory();

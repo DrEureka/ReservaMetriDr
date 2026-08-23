@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -34,7 +35,25 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'cf-turnstile-response' => ['required'],
         ]);
+
+        $turnstileResponse = $request->input('cf-turnstile-response');
+        $remoteIp = $request->ip();
+
+        $verification = Http::withHeaders([
+            'Accept' => 'application/json',
+        ])->asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => config('services.turnstile.secret'),
+            'response' => $turnstileResponse,
+            'remoteip' => $remoteIp,
+        ]);
+
+        if (! $verification->json('success', false)) {
+            throw ValidationException::withMessages([
+                'cf-turnstile-response' => __('Verificación anti-bot fallida. Intentá de nuevo.'),
+            ]);
+        }
 
         $user = User::create([
             'name' => $request->name,

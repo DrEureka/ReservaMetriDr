@@ -6,8 +6,8 @@ use App\Models\Mesa;
 use App\Models\Reserva;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
 
 class DisponibilidadService
 {
@@ -16,36 +16,45 @@ class DisponibilidadService
     public function mesasLibres(string $ubicacion, CarbonImmutable $fecha, string $horaInicio): array
     {
         $clave = $this->claveCache($ubicacion, $fecha, $horaInicio);
+        $segundos = max(60, $fecha->endOfDay()->diffInSeconds(CarbonImmutable::now()));
 
-        $cacheadas = Redis::get($clave);
+        $cacheadas = $this->cacheGet($clave);
         if ($cacheadas !== null) {
             return json_decode($cacheadas, true) ?? [];
         }
 
         $libres = $this->calcularMesasLibres($ubicacion, $fecha, $horaInicio);
 
-        $segundosHastaFinDelDia = max(60, $fecha->endOfDay()->diffInSeconds(CarbonImmutable::now()));
-        Redis::setex($clave, $segundosHastaFinDelDia, json_encode($libres));
+        $this->cacheSet($clave, json_encode($libres), $segundos);
 
         return $libres;
     }
 
     public function invalidar(string $ubicacion, CarbonImmutable $fecha): void
     {
-        $prefijo = (string) config('database.redis.options.prefix', '');
+        $claves = array_map(
+            fn (string $sec) => "avail:{$ubicacion}:{$fecha->format('Y-m-d')}:{$sec}",
+            ['A', 'B', 'C', 'D']
+        );
 
-        foreach (Redis::keys("avail:{$ubicacion}:{$fecha->format('Y-m-d')}:*") as $keyCompleto) {
-            $keySinPrefijo = str_starts_with($keyCompleto, $prefijo)
-                ? substr($keyCompleto, strlen($prefijo))
-                : $keyCompleto;
-            Redis::del($keySinPrefijo);
+        if (RedisStatus::disponible()) {
+            try {
+                $prefijo = (string) config('database.redis.options.prefix', '');
+                foreach (Redis::keys("avail:{$ubicacion}:{$fecha->format('Y-m-d')}:*") as $keyCompleto) {
+                    $keySinPrefijo = str_starts_with($keyCompleto, $prefijo)
+                        ? substr($keyCompleto, strlen($prefijo))
+                        : $keyCompleto;
+                    Redis::del($keySinPrefijo);
+                }
+                return;
+            } catch (\Throwable) {}
+        }
+
+        foreach ($claves as $clave) {
+            Cache::forget($clave);
         }
     }
 
-    /**
-     * Calcula disponibilidad para todos los slots de una fecha en batch.
-     * Hace 2 queries (mesas + reservas) en vez de 4×N queries.
-     */
     public function disponibilidadBatch(CarbonImmutable $fecha, array $slots, int $personas): array
     {
         $fechaStr = $fecha->format('Y-m-d');
@@ -189,5 +198,23 @@ class DisponibilidadService
     private function claveCache(string $ubicacion, CarbonImmutable $fecha, string $horaInicio): string
     {
         return "avail:{$ubicacion}:{$fecha->format('Y-m-d')}:{$horaInicio}";
+    }
+
+    private function cacheGet(string $key): ?string
+    {
+        try {
+            return Cache::store('upstash-rest')->get($key);
+        } catch (\Throwable) {
+            return Cache::get($key);
+        }
+    }
+
+    private function cacheSet(string $key, mixed $value, int $ttl): void
+    {
+        try {
+            Cache::store('upstash-rest')->put($key, $value, $ttl);
+        } catch (\Throwable) {
+            Cache::put($key, $value, $ttl);
+        }
     }
 }

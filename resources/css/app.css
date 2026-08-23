@@ -110,7 +110,8 @@
     }
 
     .slot[aria-selected="true"] {
-        @apply bg-brass text-ink-900 border-brass;
+        @apply bg-brass text-ink-900 border-brass
+               dark:bg-brass dark:text-ink-900 dark:border-brass;
     }
 
     .slot__mesa {

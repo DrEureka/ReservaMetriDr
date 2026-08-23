@@ -34,6 +34,10 @@
                 autocomplete="new-password" class="campo">
         </div>
 
+        <div class="flex justify-center">
+            <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
+        </div>
+
         <button type="submit" class="boton--principal w-full">
             {{ __('Crear cuenta') }}
         </button>

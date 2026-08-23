@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -39,6 +40,11 @@ class ReservaController extends Controller
     public function store(StoreReservaRequest $solicitud): RedirectResponse|JsonResponse
     {
         $esAjax = $solicitud->expectsJson();
+
+        if (! $solicitud->user()) {
+            $this->validarTurnstile($solicitud);
+        }
+
         $fecha    = CarbonImmutable::parse($solicitud->input('fecha'));
         $hora     = $solicitud->input('hora_inicio');
         $personas = (int) $solicitud->input('cantidad_personas');
@@ -60,7 +66,14 @@ class ReservaController extends Controller
         }
 
         $llaveLock = "avail_lock:{$asignacion['ubicacion']}:{$fecha->format('Y-m-d')}:{$hora}";
-        $lockOk    = Redis::set($llaveLock, '1', 'NX', 'EX', 5);
+
+        $lockOk = false;
+        try {
+            $lockOk = Cache::store('upstash-rest')->add($llaveLock, '1', 5);
+        } catch (\Throwable) {}
+        if (! $lockOk) {
+            $lockOk = Cache::add($llaveLock, '1', 5);
+        }
 
         if (! $lockOk) {
             return $this->errorForm($solicitud, $esAjax, 'fecha', 'Hay otra reserva en proceso, reintentá en unos segundos.');
@@ -91,7 +104,8 @@ class ReservaController extends Controller
                 $this->disponibilidad->invalidar($u, $fecha);
             }
         } finally {
-            Redis::del($llaveLock);
+            try { Cache::store('upstash-rest')->forget($llaveLock); } catch (\Throwable) {}
+            Cache::forget($llaveLock);
         }
 
         Mail::to($reserva->usuario->email)
@@ -187,5 +201,28 @@ class ReservaController extends Controller
     private function urlCancelar(Reserva $reserva): string
     {
         return URL::signedRoute('reservas.cancelar', ['reserva' => $reserva->id], now()->addDays(7));
+    }
+
+    private function validarTurnstile(StoreReservaRequest $solicitud): void
+    {
+        $token = $solicitud->input('cf-turnstile-response');
+
+        if (! $token) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'cf-turnstile-response' => __('Completá el captcha.'),
+            ]);
+        }
+
+        $respuesta = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret'   => config('services.turnstile.secret'),
+            'response' => $token,
+            'remoteip' => $solicitud->ip(),
+        ]);
+
+        if (! $respuesta->json('success', false)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'cf-turnstile-response' => __('Verificación anti-bot fallida. Intentá de nuevo.'),
+            ]);
+        }
     }
 }
