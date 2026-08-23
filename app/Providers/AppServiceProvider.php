@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Support\UpstashRestStore;
+use Illuminate\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
@@ -22,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app['view']->addNamespace('mail', resource_path('views/vendor/mail'));
 
         Cache::extend('upstash-rest', function ($app) {
-            return new UpstashRestStore();
+            return new Repository(new UpstashRestStore());
         });
 
         Mail::extend('smtp_relaja', function (array $config) {
