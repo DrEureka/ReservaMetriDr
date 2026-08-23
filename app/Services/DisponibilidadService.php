@@ -37,20 +37,8 @@ class DisponibilidadService
             ['A', 'B', 'C', 'D']
         );
 
-        if (RedisStatus::disponible()) {
-            try {
-                $prefijo = (string) config('database.redis.options.prefix', '');
-                foreach (Redis::keys("avail:{$ubicacion}:{$fecha->format('Y-m-d')}:*") as $keyCompleto) {
-                    $keySinPrefijo = str_starts_with($keyCompleto, $prefijo)
-                        ? substr($keyCompleto, strlen($prefijo))
-                        : $keyCompleto;
-                    Redis::del($keySinPrefijo);
-                }
-                return;
-            } catch (\Throwable) {}
-        }
-
         foreach ($claves as $clave) {
+            try { Cache::store('upstash-rest')->forget($clave); } catch (\Throwable) {}
             Cache::forget($clave);
         }
     }
