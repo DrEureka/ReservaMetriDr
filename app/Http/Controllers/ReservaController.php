@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\URL;
@@ -60,18 +61,17 @@ class ReservaController extends Controller
             ]));
         }
 
-        $asignacion = $this->asignador->asignar($fecha, $hora, $personas);
-
-        if ($asignacion === null) {
-            return $this->errorForm($solicitud, $esAjax, 'fecha', trans('reservas.errors.sin_mesas', ['personas' => $personas]));
-        }
-
-        $llaveLock = "avail_lock:{$asignacion['ubicacion']}:{$fecha->format('Y-m-d')}:{$hora}";
+        $llaveLock = "avail_lock:{$fecha->format('Y-m-d')}:{$hora}";
 
         $lockOk = false;
         try {
             $lockOk = Cache::store('upstash-rest')->add($llaveLock, '1', 5);
-        } catch (\Throwable) {}
+        } catch (\Throwable $e) {
+            Log::warning('Lock de reserva no disponible en Upstash, usando caché local.', [
+                'clave' => $llaveLock,
+                'error' => $e->getMessage(),
+            ]);
+        }
         if (! $lockOk) {
             $lockOk = Cache::add($llaveLock, '1', 5);
         }
@@ -81,8 +81,24 @@ class ReservaController extends Controller
         }
 
         try {
+            // La asignación se calcula dentro del lock leyendo la base de datos
+            // (sin caché) para no reutilizar datos obsoletos entre pedidos concurrentes.
+            $asignacion = $this->asignador->asignar($fecha, $hora, $personas, desdeCache: false);
+
+            if ($asignacion === null) {
+                return $this->errorForm($solicitud, $esAjax, 'fecha', trans('reservas.errors.sin_mesas', ['personas' => $personas]));
+            }
+
             $reserva = DB::transaction(function () use ($solicitud, $asignacion, $fecha, $hora, $personas) {
                 $usuario = $solicitud->user() ?? $this->buscarOCrearInvitado($solicitud);
+
+                $mesaIds = collect($asignacion['mesas'])->pluck('id')->all();
+
+                // Red de seguridad: si otra reserva confirmó las mismas mesas
+                // mientras tanto, abortamos la transacción (rollback).
+                if ($this->disponibilidad->haySolapamiento($asignacion['ubicacion'], $fecha, $hora, $mesaIds)) {
+                    throw new \RuntimeException('Las mesas asignadas fueron ocupadas por otra reserva.');
+                }
 
                 $r = Reserva::create([
                     'user_id'           => $usuario->id,
@@ -94,18 +110,31 @@ class ReservaController extends Controller
                     'estado'            => Reserva::ESTADO_CONFIRMADA,
                 ]);
 
-                $r->mesas()->attach(
-                    collect($asignacion['mesas'])->pluck('id')->all()
-                );
+                $r->mesas()->attach($mesaIds);
 
                 return $r;
             });
 
-            foreach (['A', 'B', 'C', 'D'] as $u) {
+            foreach (Reserva::UBICACIONES as $u) {
                 $this->disponibilidad->invalidar($u, $fecha);
             }
+        } catch (\RuntimeException $e) {
+            Log::warning('Colisión de disponibilidad al confirmar la reserva.', [
+                'fecha' => $fecha->toDateString(),
+                'hora'  => $hora,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->errorForm($solicitud, $esAjax, 'fecha', trans('reservas.errors.sin_mesas', ['personas' => $personas]));
         } finally {
-            try { Cache::store('upstash-rest')->forget($llaveLock); } catch (\Throwable) {}
+            try {
+                Cache::store('upstash-rest')->forget($llaveLock);
+            } catch (\Throwable $e) {
+                Log::warning('No se pudo liberar el lock de reserva en Upstash.', [
+                    'clave' => $llaveLock,
+                    'error' => $e->getMessage(),
+                ]);
+            }
             Cache::forget($llaveLock);
         }
 

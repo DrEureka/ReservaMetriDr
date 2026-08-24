@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Reserva;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -12,10 +13,10 @@ class AsignacionUbicacionService
         private HorarioService $horarios,
     ) {}
 
-    public function asignar(CarbonImmutable $fecha, string $horaInicio, int $personas): ?array
+    public function asignar(CarbonImmutable $fecha, string $horaInicio, int $personas, bool $desdeCache = true): ?array
     {
-        foreach (['A', 'B', 'C', 'D'] as $ubicacion) {
-            $libres = collect($this->disponibilidad->mesasLibres($ubicacion, $fecha, $horaInicio));
+        foreach (Reserva::UBICACIONES as $ubicacion) {
+            $libres = collect($this->disponibilidad->mesasLibres($ubicacion, $fecha, $horaInicio, $desdeCache));
 
             if ($libres->isEmpty()) {
                 continue;

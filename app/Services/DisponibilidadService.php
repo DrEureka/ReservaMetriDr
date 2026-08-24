@@ -7,14 +7,18 @@ use App\Models\Reserva;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DisponibilidadService
 {
     public function __construct(private HorarioService $horarios) {}
 
-    public function mesasLibres(string $ubicacion, CarbonImmutable $fecha, string $horaInicio): array
+    public function mesasLibres(string $ubicacion, CarbonImmutable $fecha, string $horaInicio, bool $desdeCache = true): array
     {
+        if (! $desdeCache) {
+            return $this->calcularMesasLibres($ubicacion, $fecha, $horaInicio);
+        }
+
         $clave = $this->claveCache($ubicacion, $fecha, $horaInicio);
         $segundos = max(60, $fecha->endOfDay()->diffInSeconds(CarbonImmutable::now()));
 
@@ -25,22 +29,44 @@ class DisponibilidadService
 
         $libres = $this->calcularMesasLibres($ubicacion, $fecha, $horaInicio);
 
-        $this->cacheSet($clave, json_encode($libres), $segundos);
+        $this->cacheSet($clave, json_encode($libres), (int) $segundos);
 
         return $libres;
     }
 
     public function invalidar(string $ubicacion, CarbonImmutable $fecha): void
     {
-        $claves = array_map(
-            fn (string $sec) => "avail:{$ubicacion}:{$fecha->format('Y-m-d')}:{$sec}",
-            ['A', 'B', 'C', 'D']
-        );
+        foreach ($this->horarios->slotsParaFecha($fecha) as $slot) {
+            $clave = $this->claveCache($ubicacion, $fecha, $slot);
 
-        foreach ($claves as $clave) {
-            try { Cache::store('upstash-rest')->forget($clave); } catch (\Throwable) {}
+            try {
+                Cache::store('upstash-rest')->forget($clave);
+            } catch (\Throwable $e) {
+                Log::warning('No se pudo invalidar la clave en Upstash.', [
+                    'clave' => $clave,
+                    'error' => $e->getMessage(),
+                ]);
+            }
             Cache::forget($clave);
         }
+    }
+
+    public function haySolapamiento(string $ubicacion, CarbonImmutable $fecha, string $horaInicio, array $mesaIds): bool
+    {
+        if ($mesaIds === []) {
+            return false;
+        }
+
+        $inicioNuevo = $this->horarios->fechaInicioReserva($fecha, $horaInicio);
+        $finNuevo    = $this->horarios->fechaFinReserva($fecha, $horaInicio);
+
+        return Reserva::whereDate('fecha', $fecha->format('Y-m-d'))
+            ->where('ubicacion', $ubicacion)
+            ->where('estado', Reserva::ESTADO_CONFIRMADA)
+            ->whereHas('mesas', fn ($consulta) => $consulta->whereIn('mesas.id', $mesaIds))
+            ->with('mesas')
+            ->get()
+            ->contains(fn (Reserva $reserva) => $this->reservaSolapa($reserva, $inicioNuevo, $finNuevo));
     }
 
     public function disponibilidadBatch(CarbonImmutable $fecha, array $slots, int $personas): array
@@ -50,7 +76,7 @@ class DisponibilidadService
         $todasMesas = Mesa::orderBy('ubicacion')->orderBy('numero')->get()
             ->groupBy('ubicacion');
 
-        $reservasDelDia = Reserva::where('fecha', $fechaStr)
+        $reservasDelDia = Reserva::whereDate('fecha', $fechaStr)
             ->where('estado', Reserva::ESTADO_CONFIRMADA)
             ->with('mesas')
             ->get();
@@ -64,11 +90,7 @@ class DisponibilidadService
             $mesasOcupadasIds = [];
 
             foreach ($reservasDelDia as $reserva) {
-                $horaRes = substr((string) $reserva->hora_inicio, 0, 5);
-                $resInicio = $this->horarios->fechaInicioReserva($fecha, $horaRes);
-                $resFin    = $this->horarios->fechaFinReserva($fecha, $horaRes);
-
-                if ($resInicio->lessThan($finSlot) && $resFin->greaterThan($inicioSlot)) {
+                if ($this->reservaSolapa($reserva, $inicioSlot, $finSlot)) {
                     foreach ($reserva->mesas as $mesa) {
                         $mesasOcupadasIds[$mesa->id] = true;
                     }
@@ -78,7 +100,7 @@ class DisponibilidadService
             $totalMesas    = 0;
             $totalCapacidad = 0;
 
-            foreach (['A', 'B', 'C', 'D'] as $sec) {
+            foreach (Reserva::UBICACIONES as $sec) {
                 $libres = collect($todasMesas->get($sec, collect())->all())
                     ->reject(fn (Mesa $m) => isset($mesasOcupadasIds[$m->id]))
                     ->filter(fn (Mesa $m) => $m->capacidad >= $personas);
@@ -105,7 +127,7 @@ class DisponibilidadService
         $totalMesas = 0;
         $totalCapacidad = 0;
 
-        foreach (['A', 'B', 'C', 'D'] as $ubicacion) {
+        foreach (Reserva::UBICACIONES as $ubicacion) {
             $libres = collect($this->mesasLibres($ubicacion, $fecha, $horaInicio))
                 ->filter(fn (array $mesa) => $mesa['capacidad'] >= $personas);
 
@@ -155,7 +177,7 @@ class DisponibilidadService
         $inicioNuevo = $this->horarios->fechaInicioReserva($fecha, $horaInicio);
         $finNuevo    = $this->horarios->fechaFinReserva($fecha, $horaInicio);
 
-        $candidatas = Reserva::where('fecha', $fecha->format('Y-m-d'))
+        $candidatas = Reserva::whereDate('fecha', $fecha->format('Y-m-d'))
             ->where('ubicacion', $ubicacion)
             ->where('estado', Reserva::ESTADO_CONFIRMADA)
             ->with('mesas')
@@ -163,17 +185,7 @@ class DisponibilidadService
 
         $ocupadas = [];
         foreach ($candidatas as $reserva) {
-            $hora = substr((string) $reserva->hora_inicio, 0, 5);
-            $reservaInicio = $this->horarios->fechaInicioReserva(
-                CarbonImmutable::parse($reserva->fecha),
-                $hora
-            );
-            $reservaFin = $this->horarios->fechaFinReserva(
-                CarbonImmutable::parse($reserva->fecha),
-                $hora
-            );
-
-            if ($reservaInicio->lessThan($finNuevo) && $reservaFin->greaterThan($inicioNuevo)) {
+            if ($this->reservaSolapa($reserva, $inicioNuevo, $finNuevo)) {
                 foreach ($reserva->mesas as $mesa) {
                     $ocupadas[] = $mesa->id;
                 }
@@ -181,6 +193,17 @@ class DisponibilidadService
         }
 
         return $ocupadas;
+    }
+
+    private function reservaSolapa(Reserva $reserva, CarbonImmutable $inicioNuevo, CarbonImmutable $finNuevo): bool
+    {
+        $hora = substr((string) $reserva->hora_inicio, 0, 5);
+        $reservaFecha = CarbonImmutable::parse($reserva->fecha);
+
+        $reservaInicio = $this->horarios->fechaInicioReserva($reservaFecha, $hora);
+        $reservaFin    = $this->horarios->fechaFinReserva($reservaFecha, $hora);
+
+        return $reservaInicio->lessThan($finNuevo) && $reservaFin->greaterThan($inicioNuevo);
     }
 
     private function claveCache(string $ubicacion, CarbonImmutable $fecha, string $horaInicio): string
@@ -191,18 +214,32 @@ class DisponibilidadService
     private function cacheGet(string $key): ?string
     {
         try {
-            return Cache::store('upstash-rest')->get($key);
-        } catch (\Throwable) {
-            return Cache::get($key);
+            $valor = Cache::store('upstash-rest')->get($key);
+
+            if ($valor !== null) {
+                return $valor;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Lectura de caché Upstash falló, usando caché local.', [
+                'clave' => $key,
+                'error' => $e->getMessage(),
+            ]);
         }
+
+        return Cache::get($key);
     }
 
     private function cacheSet(string $key, mixed $value, int $ttl): void
     {
         try {
             Cache::store('upstash-rest')->put($key, $value, $ttl);
-        } catch (\Throwable) {
-            Cache::put($key, $value, $ttl);
+        } catch (\Throwable $e) {
+            Log::warning('Escritura de caché Upstash falló, usando caché local.', [
+                'clave' => $key,
+                'error' => $e->getMessage(),
+            ]);
         }
+
+        Cache::put($key, $value, $ttl);
     }
 }

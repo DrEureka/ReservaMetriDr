@@ -117,6 +117,10 @@ class UpstashRestStore implements Store
 
     private function http()
     {
+        if ($this->url === '' || $this->token === '') {
+            throw new \RuntimeException('Upstash REST no está configurado.');
+        }
+
         return Http::withHeaders([
             'Authorization' => "Bearer {$this->token}",
         ])->timeout(5);

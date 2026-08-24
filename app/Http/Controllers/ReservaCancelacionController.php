@@ -47,7 +47,7 @@ class ReservaCancelacionController extends Controller
             $reserva->mesas()->detach();
         });
 
-        foreach (['A', 'B', 'C', 'D'] as $u) {
+        foreach (Reserva::UBICACIONES as $u) {
             $this->disponibilidad->invalidar($u, $fecha);
         }
 
